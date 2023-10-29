@@ -1,1 +1,1 @@
-# ps-payment-service
+# ps-product-service
