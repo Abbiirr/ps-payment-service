@@ -50,8 +50,8 @@ public class PaymentService {
             userBalance.setBalance(balance - requestedAmount);
             userRepository.save(userBalance);
         }
-
         return responseDTO;
+
     }
 
     public void credit(final PaymentRequestDTO requestDTO) {

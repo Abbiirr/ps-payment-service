@@ -30,6 +30,8 @@ dependencies {
     // Spring Boot Logging Starter (already includes SLF4J)
     implementation "org.springframework.boot:spring-boot-starter-logging"
 
+    implementation 'org.springframework.kafka:spring-kafka'
+
 // SLF4J Log4j binding
     implementation 'org.slf4j:slf4j-log4j12:1.7.32'
 
