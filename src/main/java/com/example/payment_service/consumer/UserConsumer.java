@@ -16,6 +16,8 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class UserConsumer {
@@ -25,6 +27,8 @@ public class UserConsumer {
     private final PaymentService service;
 
     private final UserRepository userRepository;
+    private final Set<String> debitBalanceEvents = ConcurrentHashMap.newKeySet();
+    private final Set<String> checkUserAndOrderEvents = ConcurrentHashMap.newKeySet();
 
     public UserConsumer(KafkaMessager kafkaMessager, MessageToDTOConverter messageToDTOConverter, PaymentService service, UserRepository userRepository) {
         this.kafkaMessager = kafkaMessager;
@@ -36,6 +40,13 @@ public class UserConsumer {
 
     @KafkaListener(topics = "check_user_and_order", groupId = "group_1", containerFactory = "kafkaListenerContainerFactory")
     public String checkUserAndOrderListener(String message, Acknowledgment acknowledgment) {
+        String eventId = MessageToDTOConverter.getField(message, "eventId");
+        if (checkUserAndOrderEvents.contains(eventId)) {
+            acknowledgment.acknowledge();
+            return "Completed";
+        } else {
+            checkUserAndOrderEvents.add(eventId);
+        }
         String userId = MessageToDTOConverter.getField(message, "userId");
         Optional<User> user = userRepository.findById(userId);
         message = MessageToDTOConverter.addStatus(message, "ok");
@@ -52,7 +63,14 @@ public class UserConsumer {
 
     @KafkaListener(topics = "debit_balance", groupId = "group_1", containerFactory = "kafkaListenerContainerFactory")
     public String debitBalanceListener(String message, Acknowledgment acknowledgment) {
-
+        String eventId = MessageToDTOConverter.getField(message, "eventId");
+        if(debitBalanceEvents.contains(eventId)){
+            acknowledgment.acknowledge();
+            return "Completed";
+        }
+        else {
+            debitBalanceEvents.add(eventId);
+        }
         String totalPrice = (MessageToDTOConverter.getField(message, "totalPrice"));
         if(totalPrice == null){
             message = MessageToDTOConverter.addStatus(message, "fail");
