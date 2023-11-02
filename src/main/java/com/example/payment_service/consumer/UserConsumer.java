@@ -1,12 +1,11 @@
 package com.example.payment_service.consumer;
 
-import com.example.payment_service.dto.DebitBalanceDTO;
 import com.example.payment_service.dto.PaymentRequestDTO;
 import com.example.payment_service.dto.PaymentResponseDTO;
-import com.example.payment_service.dto.UserAndOrderDTO;
 import com.example.payment_service.entity.User;
 import com.example.payment_service.enums.KafkaTopics;
 import com.example.payment_service.enums.PaymentStatus;
+import com.example.payment_service.helper.EventFinder;
 import com.example.payment_service.helper.KafkaMessager;
 import com.example.payment_service.helper.MessageToDTOConverter;
 import com.example.payment_service.repository.UserRepository;
@@ -29,23 +28,23 @@ public class UserConsumer {
     private final UserRepository userRepository;
     private final Set<String> debitBalanceEvents = ConcurrentHashMap.newKeySet();
     private final Set<String> checkUserAndOrderEvents = ConcurrentHashMap.newKeySet();
+    private final EventFinder eventFinder;
 
-    public UserConsumer(KafkaMessager kafkaMessager, MessageToDTOConverter messageToDTOConverter, PaymentService service, UserRepository userRepository) {
+    public UserConsumer(KafkaMessager kafkaMessager, MessageToDTOConverter messageToDTOConverter, PaymentService service, UserRepository userRepository, EventFinder eventFinder) {
         this.kafkaMessager = kafkaMessager;
         this.messageToDTOConverter = messageToDTOConverter;
         this.service = service;
         this.userRepository = userRepository;
+        this.eventFinder = eventFinder;
     }
 
 
     @KafkaListener(topics = "check_user_and_order", groupId = "group_1", containerFactory = "kafkaListenerContainerFactory")
     public String checkUserAndOrderListener(String message, Acknowledgment acknowledgment) {
         String eventId = MessageToDTOConverter.getField(message, "eventId");
-        if (checkUserAndOrderEvents.contains(eventId)) {
+        if(eventFinder.findDuplicateOrNot(eventId, "checkUserAndOrderListener")){
             acknowledgment.acknowledge();
-            return "Completed";
-        } else {
-            checkUserAndOrderEvents.add(eventId);
+            return "Duplicate event";
         }
         String userId = MessageToDTOConverter.getField(message, "userId");
         Optional<User> user = userRepository.findById(userId);
@@ -64,12 +63,9 @@ public class UserConsumer {
     @KafkaListener(topics = "debit_balance", groupId = "group_1", containerFactory = "kafkaListenerContainerFactory")
     public String debitBalanceListener(String message, Acknowledgment acknowledgment) {
         String eventId = MessageToDTOConverter.getField(message, "eventId");
-        if(debitBalanceEvents.contains(eventId)){
+        if(eventFinder.findDuplicateOrNot(eventId, "debitBalanceListener")){
             acknowledgment.acknowledge();
-            return "Completed";
-        }
-        else {
-            debitBalanceEvents.add(eventId);
+            return "Duplicate event";
         }
         String totalPrice = (MessageToDTOConverter.getField(message, "totalPrice"));
         if(totalPrice == null){
