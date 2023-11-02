@@ -1,14 +1,12 @@
 package com.example.payment_service.helper;
 
-import com.example.orchestrator_service.dto.CheckoutEventDTO;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class KafkaMessageFormatter {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static String formatCheckoutRequest(CheckoutEventDTO requestDTO) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(requestDTO);
-    }
+
 }
 

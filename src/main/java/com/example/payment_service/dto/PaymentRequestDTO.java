@@ -1,17 +1,15 @@
 package com.example.payment_service.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class PaymentRequestDTO {
+    private String eventId;
     private String userId;
     private Double amount;
-    private String orderId;
 
 }

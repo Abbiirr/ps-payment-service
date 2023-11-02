@@ -42,7 +42,6 @@ public class PaymentService {
         PaymentResponseDTO responseDTO = new PaymentResponseDTO();
         responseDTO.setAmount(requestedAmount);
         responseDTO.setUserId(userId);
-        responseDTO.setOrderId(requestDTO.getOrderId());
         responseDTO.setStatus(PaymentStatus.PAYMENT_REJECTED);
 
         if (balance >= requestedAmount) {

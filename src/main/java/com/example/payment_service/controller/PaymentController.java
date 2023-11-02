@@ -17,7 +17,7 @@ public class PaymentController {
     private PaymentService service;
 
 
-    @GetMapping("")
+    @GetMapping("/all")
     public List<User> getAllProducts() {
         return this.service.getAllUsers();
     }
